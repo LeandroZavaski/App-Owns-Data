@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Configuration;
+using System.Security.Claims;
+using System.Web.Helpers;
 using System.Web.Http;
 using PowerBIEmbedded_AppOwnsData.Utils;
 using Microsoft.AspNet.Identity;
@@ -31,14 +33,10 @@ namespace PowerBIEmbedded_AppOwnsData
         {
             app.UseExternalSignInCookie(DefaultAuthenticationTypes.ExternalCookie);
 
-            app.SetDefaultSignInAsAuthenticationType(CookieAuthenticationDefaults.AuthenticationType);
-
             app.UseCookieAuthentication(new CookieAuthenticationOptions
             {
                 AuthenticationType = DefaultAuthenticationTypes.ApplicationCookie,
                 LoginPath = new PathString("/"),
-                SlidingExpiration = true,
-                CookieSecure = CookieSecureOption.Always
             });
 
             app.UseOpenIdConnectAuthentication(new OpenIdConnectAuthenticationOptions
@@ -49,6 +47,8 @@ namespace PowerBIEmbedded_AppOwnsData
             });
 
             app.UseCustomMiddleware(new MemoryCache(new MemoryCacheOptions()));
+
+            AntiForgeryConfig.UniqueClaimTypeIdentifier = ClaimTypes.NameIdentifier;
         }
     }
 }

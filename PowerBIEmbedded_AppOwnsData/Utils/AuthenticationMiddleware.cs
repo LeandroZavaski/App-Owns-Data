@@ -1,21 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
-using System.Web.Security;
 using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.Cookies;
 
 namespace PowerBIEmbedded_AppOwnsData.Utils
 {
@@ -112,25 +107,21 @@ namespace PowerBIEmbedded_AppOwnsData.Utils
 
             var validate = validator.ValidateToken(accessToken, validationParameters, out var validatedToken);
 
-            var claimsIdentity = new ClaimsIdentity(validate.Claims, "Cookie");
+            var claimsIdentity = new ClaimsIdentity(validate.Claims, DefaultAuthenticationTypes.ApplicationCookie);
 
-            var principal = new ClaimsPrincipal(claimsIdentity);
-
-            var authProperties = new AuthenticationProperties
+            AuthenticationManager.SignIn(new AuthenticationProperties()
             {
-                ExpiresUtc = DateTimeOffset.UtcNow.AddSeconds(double.Parse(expiresIn)),
-                IsPersistent = true
-            };
+                AllowRefresh = true,
+                IsPersistent = true,
+                ExpiresUtc = DateTimeOffset.UtcNow.AddSeconds(double.Parse(expiresIn))
+            }, claimsIdentity);
 
-            if (principal.HasClaim(c => c.Type == ClaimTypes.Email))
-            {
-                context.Authentication.SignIn(authProperties, claimsIdentity);
-
-                context.Authentication.User.AddIdentity((ClaimsIdentity)principal.Identity);
-
-                context.Response.Headers.Add("Bearer", accessToken.Split().ToArray());
-            }
             await Next.Invoke(context);
+        }
+
+        private static IAuthenticationManager AuthenticationManager
+        {
+            get { return HttpContext.Current.GetOwinContext().Authentication; }
         }
     }
 }
