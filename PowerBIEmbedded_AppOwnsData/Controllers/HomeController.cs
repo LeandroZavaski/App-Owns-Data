@@ -27,7 +27,7 @@ namespace PowerBIEmbedded_AppOwnsData.Controllers
         public ActionResult Index()
         {
             var result = new IndexConfig();
-            var assembly = Assembly.GetExecutingAssembly().GetReferencedAssemblies().FirstOrDefault(n => n.Name.Equals("Microsoft.PowerBI.Api"));
+            var assembly = Assembly.GetExecutingAssembly().GetReferencedAssemblies().Where(n => n.Name.Equals("Microsoft.PowerBI.Api")).FirstOrDefault();
             if (assembly != null)
             {
                 result.DotNETSDK = assembly.Version.ToString(3);

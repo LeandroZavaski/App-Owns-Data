@@ -1,17 +1,15 @@
-﻿using System;
-using System.Configuration;
-using System.Security.Claims;
+﻿using System.Configuration;
+using System.IdentityModel.Claims;
 using System.Web.Helpers;
 using System.Web.Http;
-using PowerBIEmbedded_AppOwnsData.Utils;
 using Microsoft.AspNet.Identity;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.Owin;
-using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
 using Microsoft.Owin.Security.OpenIdConnect;
 using Owin;
+using PowerBIEmbedded_AppOwnsData.Util;
 
 [assembly: OwinStartupAttribute(typeof(PowerBIEmbedded_AppOwnsData.Startup))]
 namespace PowerBIEmbedded_AppOwnsData
@@ -28,7 +26,6 @@ namespace PowerBIEmbedded_AppOwnsData
 
             app.UseWebApi(config);
         }
-
         public void ConfigureOAuth(IAppBuilder app)
         {
             app.UseExternalSignInCookie(DefaultAuthenticationTypes.ExternalCookie);
@@ -36,7 +33,7 @@ namespace PowerBIEmbedded_AppOwnsData
             app.UseCookieAuthentication(new CookieAuthenticationOptions
             {
                 AuthenticationType = DefaultAuthenticationTypes.ApplicationCookie,
-                LoginPath = new PathString("/"),
+                LoginPath = new PathString("/Account/Login"),
             });
 
             app.UseOpenIdConnectAuthentication(new OpenIdConnectAuthenticationOptions

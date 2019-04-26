@@ -51,7 +51,7 @@ namespace PowerBIEmbedded_AppOwnsData.Services
             m_tileEmbedConfig = new TileEmbedConfig();
         }
 
-        public async Task<bool> EmbedReport(string userName, string roles)
+        public async Task<bool> EmbedReport(string username, string roles)
         {
             
             // Get token credentials for user
@@ -71,7 +71,7 @@ namespace PowerBIEmbedded_AppOwnsData.Services
                     var reports = await client.Reports.GetReportsInGroupAsync(WorkspaceId);
 
                     // No reports retrieved for the given workspace.
-                    if (!reports.Value.Any())
+                    if (reports.Value.Count() == 0)
                     {
                         m_embedConfig.ErrorMessage = "No reports were found in the workspace";
                         return false;
@@ -99,9 +99,9 @@ namespace PowerBIEmbedded_AppOwnsData.Services
                     m_embedConfig.IsEffectiveIdentityRolesRequired = datasets.IsEffectiveIdentityRolesRequired;
                     GenerateTokenRequest generateTokenRequestParameters;
                     // This is how you create embed token with effective identities
-                    if (!string.IsNullOrWhiteSpace(userName))
+                    if (!string.IsNullOrWhiteSpace(username))
                     {
-                        var rls = new EffectiveIdentity(userName, new List<string> { report.DatasetId });
+                        var rls = new EffectiveIdentity(username, new List<string> { report.DatasetId });
                         if (!string.IsNullOrWhiteSpace(roles))
                         {
                             var rolesList = new List<string>();
@@ -261,7 +261,7 @@ namespace PowerBIEmbedded_AppOwnsData.Services
         /// Check if web.config embed parameters have valid values.
         /// </summary>
         /// <returns>Null if web.config parameters are valid, otherwise returns specific error string.</returns>
-        private static string GetWebConfigErrors()
+        private string GetWebConfigErrors()
         {
             // Application Id must have a value.
             if (string.IsNullOrWhiteSpace(ApplicationId))
@@ -270,7 +270,8 @@ namespace PowerBIEmbedded_AppOwnsData.Services
             }
 
             // Application Id must be a Guid object.
-            if (!Guid.TryParse(ApplicationId, out _))
+            Guid result;
+            if (!Guid.TryParse(ApplicationId, out result))
             {
                 return "ApplicationId must be a Guid object. please register your application as Native app in https://dev.powerbi.com/apps and fill application Id in web.config.";
             }
@@ -282,7 +283,7 @@ namespace PowerBIEmbedded_AppOwnsData.Services
             }
 
             // Workspace Id must be a Guid object.
-            if (!Guid.TryParse(WorkspaceId, out _))
+            if (!Guid.TryParse(WorkspaceId, out result))
             {
                 return "WorkspaceId must be a Guid object. Please select a workspace you own and fill its Id in web.config";
             }
@@ -292,13 +293,13 @@ namespace PowerBIEmbedded_AppOwnsData.Services
                 // Username must have a value.
                 if (string.IsNullOrWhiteSpace(Username))
                 {
-                    return "Username is empty. Please fill Power BI userName in web.config";
+                    return "Username is empty. Please fill Power BI username in web.config";
                 }
 
                 // Password must have a value.
                 if (string.IsNullOrWhiteSpace(Password))
                 {
-                    return "Password is empty. Please fill password of Power BI userName in web.config";
+                    return "Password is empty. Please fill password of Power BI username in web.config";
                 }
             }
             else
@@ -318,7 +319,7 @@ namespace PowerBIEmbedded_AppOwnsData.Services
             return null;
         }
 
-        private static async Task<AuthenticationResult> DoAuthentication()
+        private async Task<AuthenticationResult> DoAuthentication()
         {
             AuthenticationResult authenticationResult = null;
             if (AuthenticationType.Equals("MasterUser"))
@@ -345,6 +346,7 @@ namespace PowerBIEmbedded_AppOwnsData.Services
 
         private async Task<bool> GetTokenCredentials()
         {
+            // var result = new EmbedConfig { Username = username, Roles = roles };
             var error = GetWebConfigErrors();
             if (error != null)
             {
